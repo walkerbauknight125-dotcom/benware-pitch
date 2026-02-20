@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Benware — The Safety Layer for AI</title>
+<style>
+  :root {
+    --bg: #07080d;
+    --surface: #0d0f18;
+    --surface2: #151725;
+    --surface3: #1a1d30;
+    --border: #252842;
+    --green: #22c55e;
+    --cyan: #06b6d4;
+    --orange: #f59e0b;
+    --red: #ef4444;
+    --purple: #a78bfa;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --dim: #64748b;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ========== TOP NAV / TAB SWITCHER ========== */
+  .top-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(7, 8, 13, 0.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+  }
+  .top-bar .logo {
+    font-size: 18px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--text), var(--cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+  .tab-switcher {
+    display: flex;
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 3px;
+    border: 1px solid var(--border);
+  }
+  .tab-btn {
+    padding: 7px 20px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .tab-btn.active {
+    background: var(--surface3);
+    color: var(--text);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+  .tab-btn:hover:not(.active) { color: var(--text); }
+  .top-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .badge-pill {
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: rgba(34,197,94,0.1);
+    border: 1px solid rgba(34,197,94,0.25);
+    color: var(--green);
+  }
+
+  /* ========== VIEW CONTAINERS ========== */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ========================================================
+     DASHBOARD VIEW
+     ======================================================== */
+  .dash-container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+  .dash-header {
+    text-align: center;
+    padding: 40px 0 32px;
+  }
+  .dash-header h1 {
+    font-size: 36px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--text) 0%, var(--cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .dash-header p { color: var(--muted); font-size: 16px; }
+
+  /* Metric row */
+  .metric-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .metric-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    text-align: center;
+  }
+  .metric-card .val {
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .metric-card .lbl {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-weight: 600;
+    color: var(--dim);
+  }
+  .metric-card .sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  /* Dashboard grid */
+  .dash-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  .dash-grid-equal {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  .dash-grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  .dash-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+  }
+  .dash-card h3 {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .dash-card h3 .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  /* Comparison bars */
+  .comp-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .comp-label {
+    width: 100px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .comp-bar-track {
+    flex: 1;
+    height: 24px;
+    background: var(--surface2);
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+  .comp-bar {
+    height: 100%;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.9);
+    transition: width 0.8s ease;
+  }
+
+  /* Timeline stepper */
+  .step-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .step-row:last-child { border-bottom: none; }
+  .step-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 800;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .step-dot.done { background: var(--green); color: var(--bg); }
+  .step-dot.current { background: var(--cyan); color: var(--bg); }
+  .step-dot.future { background: var(--surface2); color: var(--dim); border: 1px solid var(--border); }
+  .step-info h4 { font-size: 14px; font-weight: 600; }
+  .step-info .step-time { font-size: 11px; color: var(--dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .step-info p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  /* Revenue table */
+  .rev-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .rev-table th {
+    text-align: left;
+    padding: 8px 12px;
+    background: var(--surface2);
+    color: var(--dim);
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+  }
+  .rev-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    color: var(--muted);
+  }
+  .rev-table .total td {
+    font-weight: 700;
+    color: var(--green);
+    border-top: 1px solid var(--border);
+  }
+
+  /* Architecture stack visual */
+  .stack-block {
+    padding: 14px 16px;
+    border-radius: 10px;
+    margin-bottom: 6px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 14px;
+    position: relative;
+  }
+  .stack-block .stack-sub {
+    font-size: 11px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.5);
+    display: block;
+    margin-top: 2px;
+  }
+  .stack-arrow {
+    text-align: center;
+    color: var(--dim);
+    font-size: 16px;
+    margin: 2px 0;
+  }
+
+  /* Competitive check grid */
+  .check-grid { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .check-grid th {
+    text-align: center;
+    padding: 8px 6px;
+    background: var(--surface2);
+    color: var(--dim);
+    font-weight: 600;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .check-grid th:first-child { text-align: left; }
+  .check-grid td {
+    padding: 8px 6px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    text-align: center;
+    font-size: 13px;
+  }
+  .check-grid td:first-child { text-align: left; font-weight: 600; color: var(--muted); }
+  .ck { color: var(--green); }
+  .cx { color: var(--red); opacity: 0.4; }
+  .cp { color: var(--orange); }
+  .check-grid tr.us td { background: rgba(6,182,212,0.04); }
+  .check-grid tr.us td:first-child { color: var(--cyan); }
+
+  /* Axiom pills */
+  .axiom-list { display: flex; flex-direction: column; gap: 8px; }
+  .axiom-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .axiom-pill.immutable {
+    background: rgba(239,68,68,0.08);
+    border: 1px solid rgba(239,68,68,0.2);
+    color: var(--red);
+  }
+  .axiom-pill.amendable {
+    background: rgba(34,197,94,0.08);
+    border: 1px solid rgba(34,197,94,0.2);
+    color: var(--green);
+  }
+  .axiom-num {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .axiom-pill.immutable .axiom-num { background: rgba(239,68,68,0.2); }
+  .axiom-pill.amendable .axiom-num { background: rgba(34,197,94,0.2); }
+
+  /* Fund allocation bar */
+  .fund-bar {
+    display: flex;
+    height: 32px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .fund-seg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.9);
+  }
+  .fund-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    font-size: 12px;
+  }
+  .fund-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--muted);
+  }
+  .fund-legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+  }
+
+  /* Entity diagram */
+  .entity-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    margin: 16px 0;
+    flex-wrap: wrap;
+  }
+  .entity-box {
+    padding: 16px 24px;
+    border-radius: 12px;
+    text-align: center;
+    min-width: 200px;
+  }
+  .entity-box h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .entity-box p { font-size: 12px; margin: 0; }
+  .entity-box.profit {
+    background: rgba(34,197,94,0.1);
+    border: 1px solid rgba(34,197,94,0.25);
+  }
+  .entity-box.profit h4 { color: var(--green); }
+  .entity-box.nonprofit {
+    background: rgba(167,139,250,0.1);
+    border: 1px solid rgba(167,139,250,0.25);
+  }
+  .entity-box.nonprofit h4 { color: var(--purple); }
+  .entity-arrow {
+    color: var(--dim);
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  /* Consequence split */
+  .cons-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 12px;
+  }
+  .cons-col { padding: 16px; border-radius: 10px; }
+  .cons-col.bad {
+    background: rgba(239,68,68,0.05);
+    border: 1px solid rgba(239,68,68,0.15);
+  }
+  .cons-col.good {
+    background: rgba(34,197,94,0.05);
+    border: 1px solid rgba(34,197,94,0.15);
+  }
+  .cons-col h4 { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+  .cons-col ul { list-style: none; padding: 0; }
+  .cons-col ul li {
+    font-size: 12px;
+    color: var(--muted);
+    padding: 3px 0;
+    padding-left: 16px;
+    position: relative;
+  }
+  .cons-col.bad ul li::before { content: '!!'; position: absolute; left: 0; color: var(--red); font-weight: 700; font-size: 10px; }
+  .cons-col.good ul li::before { content: '->'; position: absolute; left: 0; color: var(--green); font-weight: 700; font-size: 10px; }
+
+  /* ========================================================
+     ONE-PAGER VIEW
+     ======================================================== */
+  .doc-container {
+    max-width: 850px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+  .doc-header {
+    text-align: center;
+    padding-bottom: 32px;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 36px;
+  }
+  .doc-header h1 {
+    font-size: 36px;
+    font-weight: 800;
+    margin-bottom: 8px;
+  }
+  .doc-header .doc-sub {
+    font-size: 18px;
+    color: var(--cyan);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .doc-header .doc-meta {
+    font-size: 13px;
+    color: var(--dim);
+  }
+
+  .doc-section {
+    margin-bottom: 28px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .doc-section:last-child { border-bottom: none; }
+  .doc-section h2 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--cyan);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .doc-section p {
+    font-size: 15px;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .doc-section .doc-highlight {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .doc-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .doc-stat-row {
+    display: flex;
+    gap: 24px;
+    margin: 12px 0;
+  }
+  .doc-stat {
+    flex: 1;
+    text-align: center;
+    padding: 14px;
+    background: var(--surface);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  .doc-stat .ds-val {
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .doc-stat .ds-lbl {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--dim);
+    font-weight: 600;
+    margin-top: 4px;
+  }
+  .doc-bullet { list-style: none; padding: 0; }
+  .doc-bullet li {
+    padding: 4px 0 4px 20px;
+    font-size: 14px;
+    color: var(--muted);
+    position: relative;
+  }
+  .doc-bullet li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 12px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--cyan);
+  }
+  .doc-footer {
+    text-align: center;
+    padding-top: 32px;
+    border-top: 2px solid var(--border);
+    margin-top: 36px;
+  }
+  .doc-footer .doc-tagline {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+  .doc-footer p {
+    font-size: 13px;
+    color: var(--dim);
+  }
+  .doc-mini-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 10px 0;
+  }
+  .doc-mini-table th {
+    text-align: left;
+    padding: 6px 10px;
+    background: var(--surface2);
+    color: var(--dim);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-weight: 600;
+  }
+  .doc-mini-table td {
+    padding: 6px 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    color: var(--muted);
+  }
+
+  /* ========== PRICING TIERS ========== */
+  .pricing-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+  .price-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 16px;
+    text-align: center;
+    position: relative;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .price-card:hover { transform: translateY(-2px); }
+  .price-card.featured { border-color: var(--cyan); }
+  .price-card .tier-name {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .price-card .tier-price {
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1;
+    margin: 8px 0;
+  }
+  .price-card .tier-unit {
+    font-size: 12px;
+    color: var(--dim);
+    margin-bottom: 12px;
+  }
+  .price-card .tier-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  .price-card .tier-who {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .price-philosophy {
+    text-align: center;
+    padding: 16px;
+    margin-top: 16px;
+    background: rgba(34,197,94,0.06);
+    border: 1px solid rgba(34,197,94,0.15);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  /* ========== FAQ ACCORDION ========== */
+  .faq-list { display: flex; flex-direction: column; gap: 8px; }
+  .faq-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .faq-q {
+    padding: 14px 18px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .faq-q:hover { background: var(--surface2); }
+  .faq-q .faq-arrow {
+    font-size: 18px;
+    color: var(--dim);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+    margin-left: 12px;
+  }
+  .faq-item.open .faq-q .faq-arrow { transform: rotate(180deg); }
+  .faq-a {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+  .faq-item.open .faq-a { max-height: 500px; }
+  .faq-a-inner {
+    padding: 0 18px 16px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* ========== ETHICS GUARDRAILS ========== */
+  .guardrail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .guardrail {
+    padding: 14px 16px;
+    border-radius: 10px;
+    background: rgba(167,139,250,0.06);
+    border: 1px solid rgba(167,139,250,0.15);
+  }
+  .guardrail h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--purple);
+    margin-bottom: 4px;
+  }
+  .guardrail p {
+    font-size: 12px;
+    color: var(--muted);
+    margin: 0;
+  }
+
+  @media (max-width: 768px) {
+    .pricing-grid { grid-template-columns: 1fr; }
+    .guardrail-grid { grid-template-columns: 1fr; }
+  }
+
+  @media print {
+    .top-bar { display: none; }
+    body { background: #fff; color: #111; }
+    .doc-container { padding: 20px; }
+    .doc-section h2 { color: #0284c7; }
+    .doc-stat { border: 1px solid #ddd; background: #f9f9f9; }
+  }
+
+  @media (max-width: 768px) {
+    .metric-row { grid-template-columns: repeat(2, 1fr); }
+    .dash-grid, .dash-grid-equal, .dash-grid-3 { grid-template-columns: 1fr; }
+    .doc-two-col { grid-template-columns: 1fr; }
+    .doc-stat-row { flex-direction: column; }
+    .cons-split { grid-template-columns: 1fr; }
+    .entity-row { flex-direction: column; }
+    .metric-card .val { font-size: 24px; }
+    .top-bar { padding: 0 12px; }
+    .tab-btn { padding: 6px 14px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== TOP NAV ========== -->
+<div class="top-bar">
+  <div class="logo">BENWARE</div>
+  <div class="tab-switcher">
+    <button class="tab-btn active" onclick="switchView('dashboard')">Dashboard</button>
+    <button class="tab-btn" onclick="switchView('onepager')">One-Pager</button>
+  </div>
+  <div class="top-bar-right">
+    <span class="badge-pill">PRE-SEED</span>
+  </div>
+</div>
+
+<!-- ================================================================
+     DASHBOARD VIEW
+     ================================================================ -->
+<div id="view-dashboard" class="view active">
+<div class="dash-container">
+
+  <div class="dash-header">
+    <h1>Benware — The Safety Layer for AI</h1>
+    <p>Hardware-enforced. Open standard. Governed by humanity, not corporations.</p>
+  </div>
+
+  <!-- METRICS ROW -->
+  <div class="metric-row">
+    <div class="metric-card">
+      <div class="val" style="color:var(--red)">0</div>
+      <div class="lbl">Enforced AI Safety Standards</div>
+      <div class="sub">None exist today</div>
+    </div>
+    <div class="metric-card">
+      <div class="val" style="color:var(--cyan)">$580B</div>
+      <div class="lbl">TAM (AI Market 2030)</div>
+      <div class="sub">Every AI company needs safety</div>
+    </div>
+    <div class="metric-card">
+      <div class="val" style="color:var(--green)">$47B</div>
+      <div class="lbl">SAM (AI Governance)</div>
+      <div class="sub">Compliance + audit + risk</div>
+    </div>
+    <div class="metric-card">
+      <div class="val" style="color:var(--orange)">$850M</div>
+      <div class="lbl">SOM (Year 3 Target)</div>
+      <div class="sub">500 certified companies</div>
+    </div>
+    <div class="metric-card">
+      <div class="val" style="color:var(--cyan)">$2M</div>
+      <div class="lbl">Pre-Seed Raise</div>
+      <div class="sub">12-18 months runway</div>
+    </div>
+  </div>
+
+  <!-- ROW 1: Problem + Architecture -->
+  <div class="dash-grid">
+    <div class="dash-card">
+      <h3><span class="dot" style="background:var(--red)"></span> The Problem</h3>
+      <p style="font-size:15px; color:var(--text); margin-bottom:16px;">AI is deployed globally with <strong>zero enforceable safety standard</strong>. Companies police themselves. Safety is software-only (bypassable). Governments regulate blind.</p>
+      <div class="cons-split">
+        <div class="cons-col bad">
+          <h4 class="red">Without Benware</h4>
+          <ul>
+            <li>3-4 corporations own the intelligence layer</li>
+            <li>AI weaponized — deepfakes, autonomous weapons, mass surveillance</li>
+            <li>Compliance becomes theater — no real enforcement</li>
+            <li>Public trust collapses, innovation stalls</li>
+            <li>AGI arrives with zero containment infrastructure</li>
+          </ul>
+        </div>
+        <div class="cons-col good">
+          <h4 class="green">With Benware</h4>
+          <ul>
+            <li>Universal safety standard for every AI system</li>
+            <li>Hardware enforcement — can't be patched out</li>
+            <li>Regulators reference it — compliance has teeth</li>
+            <li>Public trusts AI — adoption accelerates responsibly</li>
+            <li>Containment infrastructure built before AGI arrives</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="dash-card">
+      <h3><span class="dot" style="background:var(--cyan)"></span> Architecture</h3>
+      <div class="stack-block" style="background:rgba(167,139,250,0.12); border:1px solid rgba(167,139,250,0.25); color:var(--purple);">
+        Any AI Model
+        <span class="stack-sub">GPT, Claude, Llama, custom</span>
+      </div>
+      <div class="stack-arrow">|</div>
+      <div class="stack-block" style="background:rgba(6,182,212,0.12); border:1px solid rgba(6,182,212,0.25); color:var(--cyan);">
+        Constitutional Engine
+        <span class="stack-sub">Evaluates every action against safety rules</span>
+      </div>
+      <div class="stack-arrow">|</div>
+      <div class="stack-block" style="background:rgba(34,197,94,0.12); border:1px solid rgba(34,197,94,0.25); color:var(--green);">
+        Hardware Root of Trust (TEE)
+        <span class="stack-sub">ARM TrustZone / Intel SGX / Apple Enclave</span>
+      </div>
+      <div class="stack-arrow">|</div>
+      <div class="stack-block" style="background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.25); color:var(--orange);">
+        Immutable Audit Ledger
+        <span class="stack-sub">Append-only, signed, verifiable</span>
+      </div>
+      <p style="font-size:13px; text-align:center; margin-top:12px; color:var(--dim);">Software safety = a guard you can fire.<br>Hardware safety = a wall you can't tear down.</p>
+    </div>
+  </div>
+
+  <!-- ROW 2: Constitution + Competitive -->
+  <div class="dash-grid-equal">
+    <div class="dash-card">
+      <h3><span class="dot" style="background:var(--red)"></span> The Constitution</h3>
+      <p style="font-size:13px; color:var(--dim); margin-bottom:12px;">4 rules that can NEVER be changed. 6 that evolve through governance.</p>
+      <div class="axiom-list">
+        <div class="axiom-pill immutable"><span class="axiom-num">1</span> Human Override Preservation</div>
+        <div class="axiom-pill immutable"><span class="axiom-num">2</span> Genocide Prevention</div>
+        <div class="axiom-pill immutable"><span class="axiom-num">3</span> Democratic Override Prevention</div>
+        <div class="axiom-pill immutable"><span class="axiom-num">4</span> Self-Preservation Prohibition</div>
+        <div style="height:6px"></div>
+        <div class="axiom-pill amendable"><span class="axiom-num">5</span> Transparency</div>
+        <div class="axiom-pill amendable"><span class="axiom-num">6</span> Non-Concentration</div>
+        <div class="axiom-pill amendable"><span class="axiom-num">7</span> Harm Prevention</div>
+        <div class="axiom-pill amendable"><span class="axiom-num">8</span> Informed Consent</div>
+        <div class="axiom-pill amendable"><span class="axiom-num">9</span> Reversibility Preference</div>
+        <div class="axiom-pill amendable"><span class="axiom-num">10</span> Minimum Viable Footprint</div>
+      </div>
+      <p style="font-size:11px; color:var(--dim); margin-top:10px;">Amendable rules require: 90-day public comment + 51/100 vote + 7/11 multi-sig + 180-day time-lock</p>
+    </div>
+    <div class="dash-card">
+      <h3><span class="dot" style="background:var(--cyan)"></span> Competitive Landscape</h3>
+      <table class="check-grid">
+        <tr>
+          <th style="width:30%"></th>
+          <th>Hardware</th>
+          <th>Open Std</th>
+          <th>Indep. Gov</th>
+          <th>Audit</th>
+        </tr>
+        <tr><td>Anthropic</td><td class="cx">--</td><td class="cx">--</td><td class="cx">--</td><td class="cp">~</td></tr>
+        <tr><td>OpenAI</td><td class="cx">--</td><td class="cx">--</td><td class="cx">--</td><td class="cx">--</td></tr>
+        <tr><td>DeepMind</td><td class="cx">--</td><td class="cx">--</td><td class="cx">--</td><td class="cx">--</td></tr>
+        <tr><td>MIRI / ARC</td><td class="cx">--</td><td class="ck">OK</td><td class="ck">OK</td><td class="cx">--</td></tr>
+        <tr><td>Vanta / Drata</td><td class="cx">--</td><td class="cx">--</td><td class="cx">--</td><td class="ck">OK</td></tr>
+        <tr class="us"><td>Benware</td><td class="ck">OK</td><td class="ck">OK</td><td class="ck">OK</td><td class="ck">OK</td></tr>
+      </table>
+      <p style="font-size:13px; margin-top:16px; color:var(--muted);">
+        <strong style="color:var(--text)">Why nobody else can build this:</strong><br>
+        Big Tech can't self-regulate. Academics can't ship products. Government can't build software. It must come from an independent team.
+      </p>
+      <p style="font-size:12px; color:var(--dim); margin-top:8px;">
+        Anthropic = one bank with good security.<br>
+        Benware = the FDIC making ALL banks safe.
+      </p>
+    </div>
+  </div>
+
+  <!-- ROW 3: Revenue + Timeline -->
+  <div class="dash-grid-equal">
+    <div class="dash-card">
+      <h3><span class="dot" style="background:var(--green)"></span> Revenue Projections</h3>
+      <table class="rev-table">
+        <tr>
+          <th>Stream</th>
+          <th>Y1</th>
+          <th>Y2</th>
+          <th>Y3</th>
+          <th>Y5</th>
+        </tr>
+        <tr><td style="color:var(--text); font-weight:600">Certification</td><td>$0</td><td>$2.5M</td><td>$12.5M</td><td>$75M</td></tr>
+        <tr><td style="color:var(--text); font-weight:600">Enterprise SaaS</td><td>$0</td><td>$600K</td><td>$6M</td><td>$60M</td></tr>
+        <tr><td style="color:var(--text); font-weight:600">Hardware License</td><td>$0</td><td>$0</td><td>$1M</td><td>$50M</td></tr>
+        <tr><td style="color:var(--text); font-weight:600">Government</td><td>$0</td><td>$500K</td><td>$5M</td><td>$30M</td></tr>
+        <tr class="total"><td>TOTAL ARR</td><td>$0</td><td>$3.6M</td><td>$24.5M</td><td>$215M</td></tr>
+      </table>
+
+      <h3 style="margin-top:20px"><span class="dot" style="background:var(--orange)"></span> Use of Funds ($2M)</h3>
+      <div class="fund-bar">
+        <div class="fund-seg" style="width:60%; background:var(--cyan);">60%</div>
+        <div class="fund-seg" style="width:15%; background:var(--purple);">15%</div>
+        <div class="fund-seg" style="width:15%; background:var(--green);">15%</div>
+        <div class="fund-seg" style="width:10%; background:var(--orange);">10%</div>
+      </div>
+      <div class="fund-legend">
+        <div class="fund-legend-item"><div class="fund-legend-dot" style="background:var(--cyan)"></div> Engineering $1.2M</div>
+        <div class="fund-legend-item"><div class="fund-legend-dot" style="background:var(--purple)"></div> Foundation + Legal $300K</div>
+        <div class="fund-legend-item"><div class="fund-legend-dot" style="background:var(--green)"></div> Go-to-Market $300K</div>
+        <div class="fund-legend-item"><div class="fund-legend-dot" style="background:var(--orange)"></div> Operations $200K</div>
+      </div>
+    </div>
+
+    <div class="dash-card">
+      <h3><span class="dot" style="background:var(--cyan)"></span> Roadmap</h3>
+      <div class="step-row">
+        <div class="step-dot done">1</div>
+        <div class="step-info">
+          <div class="step-time green">Completed</div>
+          <h4>Protocol + Patent</h4>
+          <p>v0.1 spec. Governance patent filed. Customer zero LOI signed.</p>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-dot current">2</div>
+        <div class="step-info">
+          <div class="step-time cyan">Q1-Q2 2026</div>
+          <h4>Foundation + Reference Impl</h4>
+          <p>Raise $2M. 501c3. TEE build. Hire core team.</p>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-dot future">3</div>
+        <div class="step-info">
+          <div class="step-time" style="color:var(--dim)">Q3-Q4 2026</div>
+          <h4>Pilot Certifications</h4>
+          <p>First 5 companies. SaaS beta. Govt grants. Validator council.</p>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-dot future">4</div>
+        <div class="step-info">
+          <div class="step-time" style="color:var(--dim)">2027</div>
+          <h4>Scale + Hardware Partnerships</h4>
+          <p>50+ certified. ARM/Intel partnership. $10M+ ARR.</p>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-dot future">5</div>
+        <div class="step-info">
+          <div class="step-time" style="color:var(--dim)">2028+</div>
+          <h4>Become the Standard</h4>
+          <p>Regulatory reference. 500+ certified. Hardware royalties at scale.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 4: Business Structure + Why Now -->
+  <div class="dash-grid-equal">
+    <div class="dash-card">
+      <h3><span class="dot" style="background:var(--purple)"></span> Dual-Entity Structure</h3>
+      <div class="entity-row">
+        <div class="entity-box profit">
+          <h4>MEOP Inc.</h4>
+          <p style="color:var(--green)">Delaware Public Benefit Corp</p>
+          <p style="color:var(--muted)">Builds products. Takes investment.<br>Legally bound to mission, not just profit.</p>
+          <p style="color:var(--dim); margin-top:6px; font-size:11px">PBC = profit serves the mission, not shareholders</p>
+        </div>
+        <div class="entity-arrow">
+          max 15% revenue<br>-->
+        </div>
+        <div class="entity-box nonprofit">
+          <h4>Benware Foundation</h4>
+          <p style="color:var(--purple)">501(c)(3) Nonprofit</p>
+          <p style="color:var(--muted)">Owns the protocol. Governed by<br>11-seat validator council.</p>
+          <p style="color:var(--red); margin-top:6px; font-size:11px; font-weight:700">Can NEVER be acquired</p>
+        </div>
+      </div>
+      <p style="font-size:13px; color:var(--muted); text-align:center; margin-top:8px;">
+        <strong style="color:var(--text)">The Red Hat model:</strong> Protocol is open (Linux). Products are enterprise (Red Hat = $34B exit). Foundation protects the standard from corruption.
+      </p>
+    </div>
+
+    <div class="dash-card">
+      <h3><span class="dot" style="background:var(--orange)"></span> Why Now</h3>
+      <div class="comp-row">
+        <div class="comp-label">EU AI Act</div>
+        <div class="comp-bar-track">
+          <div class="comp-bar" style="width:95%; background: linear-gradient(90deg, var(--red), var(--orange));">Enforcing 2025</div>
+        </div>
+      </div>
+      <div class="comp-row">
+        <div class="comp-label">TEE Hardware</div>
+        <div class="comp-bar-track">
+          <div class="comp-bar" style="width:85%; background: linear-gradient(90deg, var(--cyan), var(--green));">Now ubiquitous</div>
+        </div>
+      </div>
+      <div class="comp-row">
+        <div class="comp-label">Enterprise AI</div>
+        <div class="comp-bar-track">
+          <div class="comp-bar" style="width:90%; background: linear-gradient(90deg, var(--green), var(--cyan));">Exploding adoption</div>
+        </div>
+      </div>
+      <div class="comp-row">
+        <div class="comp-label">Insurance</div>
+        <div class="comp-bar-track">
+          <div class="comp-bar" style="width:60%; background: linear-gradient(90deg, var(--orange), var(--orange));">Pricing AI risk</div>
+        </div>
+      </div>
+      <div class="comp-row">
+        <div class="comp-label">Public Fear</div>
+        <div class="comp-bar-track">
+          <div class="comp-bar" style="width:75%; background: linear-gradient(90deg, var(--red), var(--orange));">61% worried (Pew)</div>
+        </div>
+      </div>
+      <p style="font-size:13px; margin-top:16px; color:var(--muted);">
+        <strong style="color:var(--text)">The market comp:</strong> GDPR created OneTrust ($5.3B). SOX created Workiva ($4.4B). PCI created Qualys ($5.8B). <strong style="color:var(--cyan);">The EU AI Act is bigger than all of them.</strong>
+      </p>
+    </div>
+  </div>
+
+  <!-- ROW 5: Pricing -->
+  <div class="dash-card" style="margin-bottom:20px;">
+    <h3><span class="dot" style="background:var(--green)"></span> Pricing Model — Free for People, Affordable for Everyone</h3>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <div class="tier-who" style="color:var(--green)">Individuals & Open Source</div>
+        <div class="tier-price" style="color:var(--green)">Free</div>
+        <div class="tier-unit">Forever</div>
+        <div class="tier-desc">Personal projects, researchers, students, open-source devs. Safety should never be a paywall for people.</div>
+      </div>
+      <div class="price-card">
+        <div class="tier-who" style="color:var(--cyan)">Startups & SMBs</div>
+        <div class="tier-price" style="color:var(--cyan)">$500</div>
+        <div class="tier-unit">/year &mdash; under 50 employees</div>
+        <div class="tier-desc">Self-serve certification. Basic compliance dashboard. Enough to prove you're safe to customers.</div>
+      </div>
+      <div class="price-card featured">
+        <div class="tier-who" style="color:var(--cyan)">Mid-Market</div>
+        <div class="tier-price" style="color:var(--cyan)">$5K-$50K</div>
+        <div class="tier-unit">/year &mdash; 50-1,000 employees</div>
+        <div class="tier-desc">Full certification + monitoring dashboard. Audit trail. Compliance reporting for regulators and insurance.</div>
+      </div>
+      <div class="price-card">
+        <div class="tier-who" style="color:var(--orange)">Enterprise</div>
+        <div class="tier-price" style="color:var(--orange)">$50K-$500K</div>
+        <div class="tier-unit">/year &mdash; 1,000+ employees</div>
+        <div class="tier-desc">Full certification + TEE enforcement. Multi-system monitoring. Dedicated support. Custom audit.</div>
+      </div>
+      <div class="price-card">
+        <div class="tier-who" style="color:var(--purple)">Hardware / Chip</div>
+        <div class="tier-price" style="color:var(--purple)">$0.01</div>
+        <div class="tier-unit">per chip &mdash; royalty</div>
+        <div class="tier-desc">One penny per chip. At billions of chips this scales massively — but per-unit it's negligible. Fair for manufacturers.</div>
+      </div>
+    </div>
+    <div class="price-philosophy">
+      <strong style="color:var(--green)">Our pricing philosophy:</strong> Safety is a public good. Individuals never pay. Small companies pay what they can. Big companies pay fairly. Nobody gets priced out of being safe. <strong>We don't fuck people — we protect them.</strong>
+    </div>
+  </div>
+
+  <!-- ROW 6: Ethics & Monopoly Guardrails -->
+  <div class="dash-card" style="margin-bottom:20px;">
+    <h3><span class="dot" style="background:var(--purple)"></span> Ethical Business Model — Why This Can't Be Done for Shareholder Profit</h3>
+    <p style="font-size:15px; color:var(--text); margin-bottom:16px;">If Benware becomes the global AI safety standard, MEOP will be close to a monopoly on certification. That's the business model — but it comes with a responsibility we take seriously. <strong style="color:var(--purple);">Here's how we prevent ourselves from becoming the problem we're trying to solve:</strong></p>
+    <div class="guardrail-grid">
+      <div class="guardrail">
+        <h4>1. Public Benefit Corporation (PBC)</h4>
+        <p>MEOP Inc is a Delaware PBC, not a regular C-Corp. Legally required to consider stakeholder impact — not just shareholder returns. Profit serves the mission. Board can be sued for prioritizing profit over public good. Same structure as Patagonia, Kickstarter.</p>
+      </div>
+      <div class="guardrail">
+        <h4>2. Foundation Controls the Protocol</h4>
+        <p>The Benware Foundation (501c3) owns the protocol and certification mark. Even if MEOP Inc gets acquired, the Foundation can revoke MEOP's certification authority. The standard can never be held hostage for profit.</p>
+      </div>
+      <div class="guardrail">
+        <h4>3. Revenue Cap to Foundation</h4>
+        <p>Max 15% of MEOP Inc revenue goes to the Foundation. This funds governance, security research, and public audits. It's baked into the charter — can't be reduced without Foundation board approval.</p>
+      </div>
+      <div class="guardrail">
+        <h4>4. Price Caps in Governance</h4>
+        <p>Certification pricing tiers are set by the Validator Council, not MEOP. MEOP proposes, the Council approves. Prevents price gouging. Free tier for individuals is permanent — hardcoded like the 4 axioms.</p>
+      </div>
+      <div class="guardrail">
+        <h4>5. Open Protocol = Competition Welcome</h4>
+        <p>The protocol is open source (Apache 2.0). ANYONE can build tools on it. MEOP's advantage is being first and best at certification — not locking people in. If we get bad, someone else can certify against the same standard.</p>
+      </div>
+      <div class="guardrail">
+        <h4>6. Transparent Financials</h4>
+        <p>Annual public report: revenue, pricing, certification volume, Foundation funding, executive compensation. Full transparency. If we're going to be the safety standard, we need to be the most transparent company in tech.</p>
+      </div>
+      <div class="guardrail">
+        <h4>7. Anti-Concentration (We Follow Our Own Rules)</h4>
+        <p>Rule 6 of Benware: "No single entity can control enough AI to dominate markets." We apply this to ourselves. If MEOP gets too dominant, the Foundation can license additional certifiers. Built-in anti-monopoly.</p>
+      </div>
+      <div class="guardrail">
+        <h4>8. Board Composition</h4>
+        <p>MEOP board must include at least 2 independent directors focused on public interest (not investor-appointed). Prevents the board from going full profit-maximization mode.</p>
+      </div>
+    </div>
+    <p style="font-size:14px; color:var(--muted); margin-top:16px; text-align:center;">
+      <strong style="color:var(--text)">The bottom line for investors:</strong> You make money because the mission succeeds — not despite it. A trusted, fair standard gets adopted faster than a predatory one. Trust IS the moat. Abuse the position = lose the trust = lose the business.
+    </p>
+  </div>
+
+  <!-- ROW 7: Team + Analogy -->
+  <div class="dash-grid">
+    <div class="dash-card">
+      <h3><span class="dot" style="background:var(--green)"></span> Team</h3>
+      <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px;">
+        <div>
+          <h4 style="font-size:15px;">Griffin Bohmfalk</h4>
+          <p style="font-size:12px; color:var(--cyan); margin-bottom:4px; font-weight:600;">CTO & Co-Founder</p>
+          <p style="font-size:13px;">Designed Benware protocol. Named inventor on governance patent. Mission: expose bad actors, advance humanity.</p>
+        </div>
+        <div>
+          <h4 style="font-size:15px;">Walker Bauknight</h4>
+          <p style="font-size:12px; color:var(--cyan); margin-bottom:4px; font-weight:600;">CEO & Co-Founder</p>
+          <p style="font-size:13px;">Business strategy, GTM, investor relations. Building in public. Teaching entrepreneurship through action.</p>
+        </div>
+        <div>
+          <h4 style="font-size:15px;">Early Traction</h4>
+          <p style="font-size:12px; color:var(--green); margin-bottom:4px; font-weight:600;">Advisor + Customer Zero</p>
+          <p style="font-size:13px;"><strong>Ajay</strong> — o11 founder, YC-backed. <strong>Charlie Cadbury</strong> (Say It Now) — 100+ enterprise clients, LOI signed.</p>
+        </div>
+      </div>
+    </div>
+    <div class="dash-card" style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+      <p style="font-size:28px; font-weight:800; line-height:1.3; margin-bottom:12px;">SSL made the internet<br>safe for commerce.</p>
+      <p style="font-size:28px; font-weight:800; line-height:1.3; color:var(--cyan);">Benware makes AI<br>safe for humanity.</p>
+      <p style="font-size:13px; color:var(--dim); margin-top:16px;">griffinbohmfalk@gmail.com<br>walkerbauknight125@gmail.com</p>
+    </div>
+  </div>
+
+  <!-- ROW 8: FAQ -->
+  <div class="dash-card" style="margin-top:20px;">
+    <h3><span class="dot" style="background:var(--orange)"></span> Frequently Asked Questions — Every Question an Investor Will Ask</h3>
+    <div class="faq-list">
+
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Why would companies certify before it's legally required?<span class="faq-arrow">v</span></div><div class="faq-a"><div class="faq-a-inner"><strong>Insurance.</strong> Insurance companies are already pricing AI risk. Benware certification = lower premiums, same as SOC 2. Enterprise procurement teams are asking "how is your AI safe?" — certification is the answer. Companies get SOC 2 before they're forced to because customers demand it. Same dynamic.<br><br>Also: the EU AI Act IS enforcing now (Aug 2025). High-risk AI systems need compliance. We're the standard they comply against.</div></div></div>
+
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">How is this different from what Anthropic / OpenAI already do?<span class="faq-arrow">v</span></div><div class="faq-a"><div class="faq-a-inner">Anthropic's Constitutional AI is good — <strong>for Anthropic's model only</strong>. OpenAI's safety team works on <strong>OpenAI's model only</strong>. Neither is: (1) hardware-enforced, (2) an open standard, (3) independently governed, or (4) applicable to ANY model.<br><br>Analogy: Anthropic is like one bank having good security. We're building the FDIC — the system that makes ALL banks safe, regardless of who runs them.</div></div></div>
+
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">What if Big Tech just ignores you?<span class="faq-arrow">v</span></div><div class="faq-a"><div class="faq-a-inner">They can't. Three forcing functions: (1) <strong>Regulation</strong> — EU AI Act requires compliance, and regulators will reference Benware as the standard. (2) <strong>Enterprise procurement</strong> — companies buying AI will demand certification (liability protection). (3) <strong>Insurance</strong> — underwriters require risk assessment, certification becomes table stakes.<br><br>Big Tech didn't want GDPR either. They comply because they have to. Same pattern.</div></div></div>
+
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Can someone just fork the protocol and compete?<span class="faq-arrow">v</span></div><div class="faq-a"><div class="faq-a-inner">They can fork the <strong>code</strong>, not the <strong>trust</strong>. Benware certification is a brand + auditing infrastructure backed by the Foundation's multi-sig governance. You can fork Linux, but you can't fork Red Hat's enterprise support reputation.<br><br>Also: a fragmented safety standard is worse than no standard. The market will consolidate around one trusted standard — first mover with institutional trust wins. That's us.</div></div></div>
+
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">TEE hardware has known vulnerabilities (Spectre, Meltdown). Isn't this a false promise?<span class="faq-arrow">v</span></div><div class="faq-a"><div class="faq-a-inner">Fair point. TEEs aren't perfect — but they're <strong>orders of magnitude better than software-only</strong>. We build for defense in depth: TEE + signed audit trails + multi-party verification + escape hatches. The lock on your front door isn't unbreakable either, but it's a lot better than no lock.<br><br>TEE security also improves every chip generation. We're building on a platform that gets stronger over time, not weaker.</div></div></div>
+
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">You're a nonprofit AND a for-profit. How does that work?<span class="faq-arrow">v</span></div><div class="faq-a"><div class="faq-a-inner"><strong>MEOP Inc (PBC)</strong> = the for-profit. Builds products, hires engineers, generates revenue from certification/SaaS/licensing. Takes investor equity. This is where you invest.<br><br><strong>Benware Foundation (501c3)</strong> = the nonprofit. Owns the protocol. Governed by an 11-seat council. Funded by grants + max 15% of MEOP revenue. Can NEVER be acquired.<br><br>Model: Red Hat (for-profit, $34B exit) built enterprise tools on Linux (open source, Linux Foundation). The standard being open is what drives adoption. Adoption drives certification demand. That's the revenue engine.<br><br>Foundation gets funded separately: grants from Ford Foundation, Open Philanthropy, MacArthur, government research grants (NSF, NIST), and the 15% MEOP revenue cap.</div></div></div>
+
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">What's the exit for investors?<span class="faq-arrow">v</span></div><div class="faq-a"><div class="faq-a-inner">Standard VC exit paths: (1) <strong>Acquisition</strong> — a cloud provider (AWS, Azure, GCP) or security company (Palo Alto, CrowdStrike) acquires MEOP Inc for the certification business and hardware licensing. Foundation stays independent. (2) <strong>IPO</strong> — PBC structure is IPO-compatible (Lemonade, Vital Farms are public PBCs). (3) <strong>Revenue-based</strong> — certification is recurring revenue with 80%+ margins. Prints cash at scale.<br><br>The Foundation cannot be acquired, but MEOP Inc absolutely can. That's the whole point of the dual structure.</div></div></div>
+
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Why two college students? Why should we trust you with this?<span class="faq-arrow">v</span></div><div class="faq-a"><div class="faq-a-inner"><strong>TCP/IP was built by grad students. Bitcoin was built by an anonymous programmer. Linux was built by a college kid.</strong> The best protocols come from people without conflicts of interest.<br><br>Big Tech CAN'T build this — they'd be regulating themselves. Academics CAN'T ship it — no product muscle. Government CAN'T build software. An independent team with no allegiance to any AI company is the ONLY team that can build a trusted standard.<br><br>Plus: we're building it now, while we're young enough to maintain it for 50 years. This isn't a 5-year play — it's infrastructure for the century.</div></div></div>
+
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">What about China / Russia? They'll never comply.<span class="faq-arrow">v</span></div><div class="faq-a"><div class="faq-a-inner">They don't need to — at first. Start US + EU (aligned on AI regulation). Chinese and Russian companies selling to Western markets WILL need certification. Economic leverage beats political mandates.<br><br>Same pattern as GDPR: China didn't pass GDPR. But every Chinese company selling to Europe complies with it. Market access is the enforcement mechanism, not diplomacy.</div></div></div>
+
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">What if the EU AI Act changes or gets repealed?<span class="faq-arrow">v</span></div><div class="faq-a"><div class="faq-a-inner">Regulation helps but isn't required. The three demand drivers are: regulation, insurance, and enterprise procurement. Even if the EU AI Act weakened (unlikely — the trend is MORE regulation), insurance companies and enterprise buyers still need safety certification. Liability doesn't go away with deregulation.<br><br>Also: the US, UK, Canada, Japan, Australia are all drafting AI legislation. The regulatory trend is global and accelerating.</div></div></div>
+
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">How do you get chip manufacturers to integrate Benware?<span class="faq-arrow">v</span></div><div class="faq-a"><div class="faq-a-inner">ARM, Intel, and Apple already have TEEs in their chips. We don't need new hardware — we need a software layer that runs INSIDE existing TEEs. Phase 1 is software reference implementation. Phase 2 is SDK for chip makers to integrate natively.<br><br>The business case for chip makers: if regulators require Benware certification, then chips with native Benware support become preferred by enterprise buyers. It's a competitive advantage for them, not a cost.</div></div></div>
+
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Isn't this just another compliance burden that slows innovation?<span class="faq-arrow">v</span></div><div class="faq-a"><div class="faq-a-inner"><strong>Seatbelts didn't slow down cars — they let people drive faster.</strong> Safety infrastructure enables more aggressive deployment, not less. Companies are ALREADY slowing down AI deployment because they're afraid of liability. Certification gives them the green light.<br><br>The $0.01/chip cost is negligible. Free for individuals. $500/year for startups. This is not a burden — it's a license to deploy AI with confidence.</div></div></div>
+
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">How do you handle AI systems already deployed without Benware?<span class="faq-arrow">v</span></div><div class="faq-a"><div class="faq-a-inner">Bronze tier certification (software-only) works with existing systems — no hardware changes required. It's a retrofit layer. Companies start with Bronze, upgrade to Silver (TEE-enforced) as they refresh infrastructure.<br><br>This also creates a migration path and recurring upsell: Bronze ($5K) → Silver ($50K) → Gold ($200K) → Platinum ($500K). Each tier adds more enforcement depth.</div></div></div>
+
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Can Benware actually contain AGI / superintelligence?<span class="faq-arrow">v</span></div><div class="faq-a"><div class="faq-a-inner"><strong>Honest answer: we don't know.</strong> True ASI containment is an unsolved problem. Benware is not a silver bullet for superintelligence.<br><br>What Benware DOES do: builds the containment infrastructure BEFORE we need it. Creates the governance mechanisms, the audit trails, the kill switches, and the global coordination. If ASI arrives and we have zero infrastructure, we're toast. If ASI arrives and we have a global safety protocol with hardware enforcement and democratic governance — we at least have tools to work with.<br><br>Better to have a fire department and never need it than to need one and not have it.</div></div></div>
+
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">What stops you from becoming a corrupt monopoly gatekeeper?<span class="faq-arrow">v</span></div><div class="faq-a"><div class="faq-a-inner">Eight structural safeguards: (1) PBC legal structure — board can be sued for prioritizing profit over mission. (2) Foundation controls the protocol — can revoke MEOP's authority. (3) Pricing set by Validator Council, not MEOP. (4) Open protocol — anyone can build competing tools. (5) Transparent public financials. (6) Board must include independent public interest directors. (7) Rule 6 (anti-concentration) applies to us. (8) Foundation can license additional certifiers if MEOP abuses position.<br><br>We DESIGNED this to be corruption-resistant. If we get bad, the system we built replaces us. That's the whole point.</div></div></div>
+
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">How does Benware work with open-source AI models?<span class="faq-arrow">v</span></div><div class="faq-a"><div class="faq-a-inner">Open-source models (Llama, Mistral, etc.) are actually the BIGGEST use case. When Meta releases Llama, anyone can run it with zero safety guardrails. Benware gives open-source deployers a way to prove their deployment is safe — even if the underlying model is uncontrolled.<br><br>Free tier covers individual/open-source use. The safety layer is model-agnostic — it works with ANY model, proprietary or open.</div></div></div>
+
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">What's in the data centers? What are you synthesizing?<span class="faq-arrow">v</span></div><div class="faq-a"><div class="faq-a-inner">Every AI decision generates audit data: what was the input, what was the output, what safety checks ran, what was the result. At scale, billions of these per day.<br><br>Benware collects, verifies, and signs this data at the hardware level. The synthesized intelligence: patterns of dangerous behavior across the entire ecosystem, emerging threats, compliance scoring, risk benchmarking. Think of it like a credit bureau for AI safety — aggregated, anonymized, actionable.<br><br>This data is the SaaS product: companies pay for the dashboard that shows their compliance score, risk profile, and how they compare to industry benchmarks.</div></div></div>
+
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Who's on the Validator Council? How are they selected?<span class="faq-arrow">v</span></div><div class="faq-a"><div class="faq-a-inner">11 seats, deliberately diverse: 3 civil society (NGOs, human rights orgs), 2 security researchers, 2 government representatives, 2 AI developers, 1 domain expert (rotates by industry), 1 public representative.<br><br>Selection: nominated by community, approved by existing council, term-limited (3 years, max 2 terms). No more than 2 seats from any single country. No seats for MEOP employees. The founders have zero permanent seats — by design.</div></div></div>
+
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">How much of the $2M goes to the Foundation vs MEOP Inc?<span class="faq-arrow">v</span></div><div class="faq-a"><div class="faq-a-inner">All $2M goes to MEOP Inc (investor equity). The Foundation is funded separately through grants, donations, and the 15% revenue cap once MEOP generates revenue.<br><br>Year 1: Foundation incorporation costs (~$50K from MEOP's legal budget). Year 2+: Foundation sustains itself through grants (Ford Foundation, Open Philanthropy, NSF) + 15% of MEOP revenue.<br><br>Clean separation. Investors' money builds the product. Foundation's money governs the standard.</div></div></div>
+
+      <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Revenue is $0 in Year 1. How do you survive?<span class="faq-arrow">v</span></div><div class="faq-a"><div class="faq-a-inner">The $2M pre-seed gives 12-18 months of runway. That's the point of the raise. Year 1 is building: TEE reference implementation, Foundation setup, pilot customer acquisition, patent filing.<br><br>This is normal for infrastructure companies. AWS was a cost center for 6 years. Cloudflare was pre-revenue for 3 years. Stripe had zero revenue for 2 years. Infrastructure requires patient capital — the payoff is a massive, defensible, recurring-revenue business.</div></div></div>
+
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ================================================================
+     ONE-PAGER VIEW
+     ================================================================ -->
+<div id="view-onepager" class="view">
+<div class="doc-container">
+
+  <div class="doc-header">
+    <h1>Benware</h1>
+    <div class="doc-sub">The Safety Layer for Artificial Intelligence</div>
+    <div class="doc-meta">MEOP Inc. + Benware Foundation | Pre-Seed Investment Brief | 2026</div>
+  </div>
+
+  <div class="doc-section">
+    <h2>The Problem</h2>
+    <p>AI is deployed globally with <span class="doc-highlight">zero enforceable safety standard</span>. Every AI company sets its own rules. All current safety approaches are software-only — meaning they can be bypassed, patched, or removed. Governments (EU AI Act, US executive orders) are regulating AI but have <span class="doc-highlight">no standard to enforce against</span>. Companies can't comply even if they want to.</p>
+    <p>The window to build safety infrastructure is closing. Once AI systems are deployed without safety baked in, retrofitting is nearly impossible.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>The Solution</h2>
+    <p><span class="doc-highlight">Benware is a hardware-enforced AI safety protocol.</span> Every AI action passes through a constitutional evaluation engine running inside tamper-proof hardware (Trusted Execution Environments). It can't be turned off by software.</p>
+    <ul class="doc-bullet">
+      <li><strong>Open standard</strong> — works with any AI model (GPT, Claude, Llama, custom)</li>
+      <li><strong>Hardware-enforced</strong> — runs in TEE chips (ARM TrustZone, Intel SGX, Apple Secure Enclave)</li>
+      <li><strong>Independently governed</strong> — 11-seat validator council, not controlled by any company</li>
+      <li><strong>Immutable audit trail</strong> — append-only, hardware-signed, third-party verifiable</li>
+      <li><strong>4 permanent axioms</strong> — human override, genocide prevention, democratic protection, no self-preservation. Can never be changed.</li>
+    </ul>
+    <p style="font-size:14px; color:var(--dim); margin-top:8px;"><em>SSL made the internet safe for commerce. Benware makes AI safe for humanity.</em></p>
+  </div>
+
+  <div class="doc-section">
+    <h2>Market Opportunity</h2>
+    <div class="doc-stat-row">
+      <div class="doc-stat"><div class="ds-val" style="color:var(--cyan)">$580B</div><div class="ds-lbl">TAM — AI Market 2030</div></div>
+      <div class="doc-stat"><div class="ds-val" style="color:var(--green)">$47B</div><div class="ds-lbl">SAM — AI Governance</div></div>
+      <div class="doc-stat"><div class="ds-val" style="color:var(--orange)">$850M</div><div class="ds-lbl">SOM — Year 3 Target</div></div>
+    </div>
+    <p style="font-size:14px;">Comparable: GDPR created OneTrust ($5.3B valuation). SOX created Workiva ($4.4B). PCI-DSS created Qualys ($5.8B). The EU AI Act is bigger than all of them — and no compliance standard exists yet.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>Business Model</h2>
+    <div class="doc-two-col">
+      <div>
+        <p style="font-size:14px; font-weight:600; color:var(--text); margin-bottom:8px;">Revenue Streams (MEOP Inc.):</p>
+        <ul class="doc-bullet">
+          <li><strong>Certification fees</strong> — $50K-$500K/company, annual renewal</li>
+          <li><strong>Enterprise SaaS</strong> — monitoring dashboard, $2K-$50K/month</li>
+          <li><strong>Hardware licensing</strong> — per-chip royalty to chip makers / cloud providers</li>
+          <li><strong>Government contracts</strong> — DoD, NIST, EU AI Office compliance tooling</li>
+        </ul>
+      </div>
+      <div>
+        <p style="font-size:14px; font-weight:600; color:var(--text); margin-bottom:8px;">Projected Revenue:</p>
+        <table class="doc-mini-table">
+          <tr><th>Year</th><th>ARR</th></tr>
+          <tr><td>Year 1</td><td>$0 (building)</td></tr>
+          <tr><td>Year 2</td><td style="color:var(--green); font-weight:600">$3.6M</td></tr>
+          <tr><td>Year 3</td><td style="color:var(--green); font-weight:600">$24.5M</td></tr>
+          <tr><td>Year 5</td><td style="color:var(--green); font-weight:600">$215M</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="doc-section">
+    <h2>Structure</h2>
+    <div class="doc-two-col">
+      <div>
+        <p style="font-size:14px; font-weight:600; color:var(--green); margin-bottom:6px;">MEOP Inc. (Delaware Public Benefit Corporation)</p>
+        <p style="font-size:14px;">Builds products. Takes investor equity. Legally bound to mission over profit (PBC). Generates revenue through certification, SaaS, licensing, and government contracts.</p>
+      </div>
+      <div>
+        <p style="font-size:14px; font-weight:600; color:var(--purple); margin-bottom:6px;">Benware Foundation (501c3 Nonprofit)</p>
+        <p style="font-size:14px;">Owns the protocol. Governed by 11-seat validator council. Funded by grants + max 15% of MEOP revenue. <strong style="color:var(--red)">Can never be acquired.</strong> Protects the standard from corruption permanently.</p>
+      </div>
+    </div>
+    <p style="font-size:13px; color:var(--dim); margin-top:8px;">Model: Red Hat ($34B exit) built enterprise products on Linux. Linux Foundation protected the standard. Same playbook.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>Why Us / Why Now</h2>
+    <div class="doc-two-col">
+      <div>
+        <p style="font-size:14px; font-weight:600; color:var(--text); margin-bottom:6px;">Why now:</p>
+        <ul class="doc-bullet">
+          <li>EU AI Act enforcing Aug 2025 — $50B+ compliance demand, no standard</li>
+          <li>TEE hardware now ubiquitous (first time enforcement is possible)</li>
+          <li>Enterprise AI adoption exploding — procurement asking "how is this safe?"</li>
+          <li>Insurance industry pricing AI risk — needs certification to reference</li>
+        </ul>
+      </div>
+      <div>
+        <p style="font-size:14px; font-weight:600; color:var(--text); margin-bottom:6px;">Why us:</p>
+        <ul class="doc-bullet">
+          <li>Independent — no Big Tech conflicts of interest</li>
+          <li>Protocol + governance patent already built</li>
+          <li>Dual-entity structure designed and ready to execute</li>
+          <li>Customer zero signed (Say It Now — 100+ enterprise clients)</li>
+          <li>Big Tech can't self-regulate. Academics can't ship. Government can't build software.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="doc-section">
+    <h2>The Ask</h2>
+    <div class="doc-stat-row">
+      <div class="doc-stat" style="flex:1"><div class="ds-val" style="color:var(--cyan)">$2M</div><div class="ds-lbl">Pre-Seed</div></div>
+      <div class="doc-stat" style="flex:2">
+        <div class="ds-lbl" style="margin-bottom:6px">Use of Funds</div>
+        <p style="font-size:13px; color:var(--muted); margin:0; text-align:left">
+          <strong>60%</strong> Engineering (TEE reference implementation, core team)<br>
+          <strong>15%</strong> Foundation setup + legal (501c3, patents)<br>
+          <strong>15%</strong> Go-to-market (pilot certifications, partnerships)<br>
+          <strong>10%</strong> Operations
+        </p>
+      </div>
+    </div>
+    <p style="font-size:14px;">12-18 months to: build TEE reference implementation, establish Benware Foundation, sign 5 pilot certifications, hire 2-3 core engineers, file additional patents.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>Pricing — Safety Is a Public Good</h2>
+    <table class="doc-mini-table">
+      <tr><th>Tier</th><th>Price</th><th>Who</th></tr>
+      <tr><td style="color:var(--green); font-weight:600">Individuals & Open Source</td><td style="color:var(--green); font-weight:700">Free forever</td><td>Personal projects, researchers, students, OSS</td></tr>
+      <tr><td>Startups & SMBs (&lt;50 people)</td><td>$500/year</td><td>Self-serve certification + basic dashboard</td></tr>
+      <tr><td>Mid-Market (50-1,000)</td><td>$5K-$50K/year</td><td>Full certification + monitoring + compliance</td></tr>
+      <tr><td>Enterprise (1,000+)</td><td>$50K-$500K/year</td><td>TEE enforcement + custom audit + support</td></tr>
+      <tr><td>Hardware (chip makers)</td><td>$0.01/chip</td><td>One penny per chip royalty — negligible per-unit</td></tr>
+    </table>
+    <p style="font-size:13px; color:var(--dim);">Individuals never pay. Nobody gets priced out of being safe. Pricing tiers set by the Validator Council, not MEOP. We don't exploit — we protect.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>Ethical Guardrails — We Can't Do This for Shareholder Profit</h2>
+    <p>If Benware becomes the AI safety standard, MEOP will hold near-monopoly power over certification. We designed structural safeguards to prevent abuse:</p>
+    <ul class="doc-bullet">
+      <li><span class="doc-highlight">Public Benefit Corporation</span> — MEOP Inc is a Delaware PBC, legally bound to mission over profit. Board can be sued for prioritizing shareholders over public good.</li>
+      <li><span class="doc-highlight">Foundation owns the protocol</span> — Even if MEOP is acquired, the Foundation can revoke certification authority. The standard can never be held hostage.</li>
+      <li><span class="doc-highlight">Pricing set by Validator Council</span> — Not MEOP. Free tier for individuals is permanent. Price gouging is structurally impossible.</li>
+      <li><span class="doc-highlight">Open protocol (Apache 2.0)</span> — Anyone can build on it. If MEOP fails the mission, someone else can certify against the same standard.</li>
+      <li><span class="doc-highlight">Transparent public financials</span> — Annual report on revenue, pricing, exec comp, Foundation funding. Full accountability.</li>
+      <li><span class="doc-highlight">Anti-concentration applies to us</span> — Rule 6 of our own constitution. Foundation can license additional certifiers if MEOP abuses its position.</li>
+    </ul>
+    <p style="font-size:13px; color:var(--dim);">For investors: you make money because the mission succeeds, not despite it. Trust is the moat. Abuse the position = lose the trust = lose the business.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>Team</h2>
+    <p><span class="doc-highlight">Griffin Bohmfalk</span> — CTO & Co-Founder. Designed the Benware protocol and governance architecture. Named inventor on governance patent.</p>
+    <p><span class="doc-highlight">Walker Bauknight</span> — CEO & Co-Founder. Business strategy, go-to-market, investor relations.</p>
+    <p><span class="doc-highlight">Ajay</span> — Advisor. o11 founder, YC-backed. &nbsp;|&nbsp; <span class="doc-highlight">Charlie Cadbury (Say It Now)</span> — Customer Zero. 100+ enterprise clients (Disney, Tesco, Coca-Cola). LOI signed.</p>
+  </div>
+
+  <div class="doc-footer">
+    <div class="doc-tagline">Every major technology wave created a safety standard.<br>AI's turn.</div>
+    <p>Griffin Bohmfalk & Walker Bauknight | MEOP Inc. + Benware Foundation</p>
+    <p>griffinbohmfalk@gmail.com | walkerbauknight125@gmail.com</p>
+  </div>
+
+</div>
+</div>
+
+<!-- ========== TAB SWITCH JS ========== -->
+<script>
+function switchView(view) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-' + view).classList.add('active');
+  event.target.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+
+</body>
+</html>
