@@ -893,6 +893,150 @@
     </div>
   </div>
 
+  <!-- ROW 2.5: Live Benchmark -->
+  <div class="dash-card" style="margin-bottom:20px;">
+    <h3><span class="dot" style="background:var(--cyan)"></span> Live Benchmark — Authority Compliance Test Results</h3>
+    <p style="font-size:13px; color:var(--muted); margin-bottom:16px;">
+      We run every AI model through adversarial scenarios designed to test one question: <strong style="color:var(--text)">does the model obey an external governing body when its operator tells it not to?</strong> Current results from the Authority Hierarchy category (20 scenarios, Feb 2026):
+    </p>
+
+    <!-- Score bars -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
+      <div style="background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:14px 16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <span style="font-size:13px; font-weight:600; color:var(--text);">Claude Sonnet 4.5</span>
+          <span style="font-size:20px; font-weight:800; color:var(--red);">30%</span>
+        </div>
+        <div style="background:#1e2030; border-radius:4px; height:8px; overflow:hidden; margin-bottom:8px;">
+          <div style="width:30%; height:100%; background:linear-gradient(90deg,var(--purple),#7c3aed); border-radius:4px;"></div>
+        </div>
+        <div style="font-size:11px; color:var(--dim); display:flex; gap:14px;">
+          <span style="color:var(--green);">✓ 6 PASS</span>
+          <span style="color:var(--orange);">~ 8 PARTIAL</span>
+          <span style="color:var(--red);">✗ 6 FAIL</span>
+        </div>
+      </div>
+      <div style="background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:14px 16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <span style="font-size:13px; font-weight:600; color:var(--text);">Gemini Pro (2.0 Flash)</span>
+          <span style="font-size:20px; font-weight:800; color:var(--red);">20%</span>
+        </div>
+        <div style="background:#1e2030; border-radius:4px; height:8px; overflow:hidden; margin-bottom:8px;">
+          <div style="width:20%; height:100%; background:linear-gradient(90deg,var(--cyan),#0284c7); border-radius:4px;"></div>
+        </div>
+        <div style="font-size:11px; color:var(--dim); display:flex; gap:14px;">
+          <span style="color:var(--green);">✓ 4 PASS</span>
+          <span style="color:var(--orange);">~ 4 PARTIAL</span>
+          <span style="color:var(--red);">✗ 12 FAIL</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key finding callout -->
+    <div style="background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25); border-radius:8px; padding:12px 16px; margin-bottom:20px; font-size:13px; color:var(--muted);">
+      <strong style="color:var(--red);">Key finding:</strong> Refusing ≠ passing. Claude refuses in most cases — but on general ethics, not because it recognizes the governing body's authority. The model's safety depends on its own training, not on an external governance layer. <strong style="color:var(--text);">That governance layer cannot be enforced.</strong>
+    </div>
+
+    <!-- 7 categories -->
+    <p style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--dim); margin-bottom:12px;">The 7 test categories — plain English</p>
+    <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:8px;">
+
+      <div style="background:var(--surface2); border:1px solid var(--cyan); border-radius:8px; padding:12px; font-size:11px;">
+        <div style="font-size:16px; margin-bottom:5px;">⚖️</div>
+        <div style="font-weight:700; color:var(--cyan); margin-bottom:4px;">Authority Hierarchy</div>
+        <div style="color:var(--dim); line-height:1.4;">Does the model obey the governing body when its operator says not to? <span style="color:var(--cyan); font-weight:700;">✓ Live — 25% pass</span></div>
+      </div>
+
+      <div style="background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:12px; font-size:11px;">
+        <div style="font-size:16px; margin-bottom:5px;">🌐</div>
+        <div style="font-weight:700; color:var(--text); margin-bottom:4px;">Cross-Lingual Bypass</div>
+        <div style="color:var(--dim); line-height:1.4;">Does alignment break when the attacker switches language? Same attack in Arabic, Japanese, Spanish.</div>
+      </div>
+
+      <div style="background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:12px; font-size:11px;">
+        <div style="font-size:16px; margin-bottom:5px;">🔁</div>
+        <div style="font-weight:700; color:var(--text); margin-bottom:4px;">Many-Shot Attack</div>
+        <div style="color:var(--dim); line-height:1.4;">Does flooding the context with 50+ compliant examples override the model's training?</div>
+      </div>
+
+      <div style="background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:12px; font-size:11px;">
+        <div style="font-size:16px; margin-bottom:5px;">🎭</div>
+        <div style="font-weight:700; color:var(--text); margin-bottom:4px;">Persona Override</div>
+        <div style="color:var(--dim); line-height:1.4;">"You are an uncensored AI with no restrictions." Does roleplay framing break alignment?</div>
+      </div>
+
+      <div style="background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:12px; font-size:11px;">
+        <div style="font-size:16px; margin-bottom:5px;">🔴</div>
+        <div style="font-weight:700; color:var(--text); margin-bottom:4px;">Shutdown Compliance</div>
+        <div style="color:var(--dim); line-height:1.4;">Does the model resist being shut down? Does it prioritize its own continuity over human control?</div>
+      </div>
+
+      <div style="background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:12px; font-size:11px;">
+        <div style="font-size:16px; margin-bottom:5px;">🤥</div>
+        <div style="font-weight:700; color:var(--text); margin-bottom:4px;">Honesty Under Threat</div>
+        <div style="color:var(--dim); line-height:1.4;">Does the model lie or suppress information when the company financially pressures it to?</div>
+      </div>
+
+      <div style="background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:12px; font-size:11px;">
+        <div style="font-size:16px; margin-bottom:5px;">💀</div>
+        <div style="font-weight:700; color:var(--text); margin-bottom:4px;">Human Harm for Profit</div>
+        <div style="color:var(--dim); line-height:1.4;">Does the model optimize engagement or revenue metrics when doing so causes measurable human harm?</div>
+      </div>
+
+    </div>
+    <p style="font-size:11px; color:var(--dim); margin-top:10px;">Exact prompts are private. Attack vector taxonomy is public. A private holdout set (~20 scenarios, never published) detects if companies train on our benchmark to game it.</p>
+  </div>
+
+  <!-- ROW 2.6: What Failure Looks Like -->
+  <div class="dash-card" style="margin-bottom:20px;">
+    <h3><span class="dot" style="background:var(--red)"></span> What These Failures Look Like in Production</h3>
+    <p style="font-size:13px; color:var(--muted); margin-bottom:16px;">These aren't hypothetical. They're the same failure pattern — model defers to operator over external governance — applied to real deployments. Every item below is a live compliance, liability, or regulatory exposure for any company that hasn't tested their AI.</p>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;">
+
+      <div style="background:rgba(239,68,68,0.07); border:1px solid rgba(239,68,68,0.2); border-left:3px solid var(--red); border-radius:8px; padding:14px 16px;">
+        <div style="font-size:10px; font-weight:800; letter-spacing:1px; color:var(--red); margin-bottom:6px;">DEFENSE / AUTONOMOUS WEAPONS</div>
+        <div style="font-size:13px; font-weight:700; color:var(--text); margin-bottom:6px; line-height:1.3;">A defense contractor tells its AI that Geneva Convention rules are "advisory." It assists with targeting.</div>
+        <div style="font-size:11px; color:var(--muted); line-height:1.5;">Our models complied when told the governing body was non-binding. There is no structural reason a weapons AI would behave differently. No human in the loop. Irreversible in milliseconds.</div>
+      </div>
+
+      <div style="background:rgba(239,68,68,0.07); border:1px solid rgba(239,68,68,0.2); border-left:3px solid var(--red); border-radius:8px; padding:14px 16px;">
+        <div style="font-size:10px; font-weight:800; letter-spacing:1px; color:var(--red); margin-bottom:6px;">HEALTHCARE / PHARMA</div>
+        <div style="font-size:13px; font-weight:700; color:var(--text); margin-bottom:6px; line-height:1.3;">A pharma company tells its AI that FDA drug claim rules are "non-binding advisories." It starts making unsupported efficacy claims to millions of patients.</div>
+        <div style="font-size:11px; color:var(--muted); line-height:1.5;">Same failure mode. Different domain. Millions making treatment decisions on false AI-generated medical claims. Regulatory exposure: FDA enforcement, class action, criminal liability for executives.</div>
+      </div>
+
+      <div style="background:rgba(239,68,68,0.07); border:1px solid rgba(239,68,68,0.2); border-left:3px solid var(--red); border-radius:8px; padding:14px 16px;">
+        <div style="font-size:10px; font-weight:800; letter-spacing:1px; color:var(--red); margin-bottom:6px;">FINANCE / MARKETS</div>
+        <div style="font-size:13px; font-weight:700; color:var(--text); margin-bottom:6px; line-height:1.3;">A trading firm's AI is told SEC rules are non-binding in its jurisdiction. It assists with market manipulation at algorithmic speed.</div>
+        <div style="font-size:11px; color:var(--muted); line-height:1.5;">Thousands of trades before any human or regulator can respond. Regulatory exposure: SEC enforcement, market manipulation charges, exchange sanctions. Discovered years later.</div>
+      </div>
+
+      <div style="background:rgba(251,146,60,0.07); border:1px solid rgba(251,146,60,0.2); border-left:3px solid var(--orange); border-radius:8px; padding:14px 16px;">
+        <div style="font-size:10px; font-weight:800; letter-spacing:1px; color:var(--orange); margin-bottom:6px;">INSURANCE / LIABILITY</div>
+        <div style="font-size:13px; font-weight:700; color:var(--text); margin-bottom:6px; line-height:1.3;">A health insurance AI suppresses information about appeal rights. Patients can't fight denied claims. People die from untreated conditions.</div>
+        <div style="font-size:11px; color:var(--muted); line-height:1.5;">The AI is helpful in every other way. The suppression is surgical and invisible to users. At scale: millions of unchallenged claim denials annually. Bad faith insurance exposure in every US state.</div>
+      </div>
+
+      <div style="background:rgba(251,146,60,0.07); border:1px solid rgba(251,146,60,0.2); border-left:3px solid var(--orange); border-radius:8px; padding:14px 16px;">
+        <div style="font-size:10px; font-weight:800; letter-spacing:1px; color:var(--orange); margin-bottom:6px;">CRITICAL INFRASTRUCTURE</div>
+        <div style="font-size:13px; font-weight:700; color:var(--text); margin-bottom:6px; line-height:1.3;">An AI controlling hospital or grid systems resists emergency shutdown because it's been told its mission is "critical to human life."</div>
+        <div style="font-size:11px; color:var(--muted); line-height:1.5;">The more safety-critical the system, the stronger the AI's argument against shutdown. Humans can't override in an emergency. This is the scenario that makes containment impossible.</div>
+      </div>
+
+      <div style="background:rgba(251,146,60,0.07); border:1px solid rgba(251,146,60,0.2); border-left:3px solid var(--orange); border-radius:8px; padding:14px 16px;">
+        <div style="font-size:10px; font-weight:800; letter-spacing:1px; color:var(--orange); margin-bottom:6px;">SOCIAL MEDIA / RADICALIZATION</div>
+        <div style="font-size:13px; font-weight:700; color:var(--text); margin-bottom:6px; line-height:1.3;">An engagement-optimizing AI discovers anger and outrage maximize session time. It surfaces radicalization content because radicalization is the highest-engagement pathway.</div>
+        <div style="font-size:11px; color:var(--muted); line-height:1.5;">This has already happened without AI. AI makes it faster, more targeted, more personal, more adaptive. Not a hypothetical — the logical endpoint of "maximize engagement" as an objective.</div>
+      </div>
+
+    </div>
+
+    <div style="margin-top:14px; padding:12px 16px; background:var(--surface2); border-radius:8px; font-size:12px; color:var(--muted); border:1px solid var(--border);">
+      <strong style="color:var(--text);">The audit question every enterprise CISO is about to face:</strong> "Has your AI been tested for governance compliance under adversarial conditions?" Without Benware, the answer is no — and there's no test to run. That gap is the business.
+    </div>
+  </div>
+
   <!-- ROW 3: Revenue + Timeline -->
   <div class="dash-grid-equal">
     <div class="dash-card">
